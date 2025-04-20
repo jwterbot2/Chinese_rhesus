@@ -1,0 +1,22 @@
+//Number of population samples (demes)
+1
+//Population effective sizes (number of genomes)
+160646
+//Sample sizes - samples age - inbreeding coefficient
+158
+//Growth rates
+0
+//Number of migration matrices
+0
+//historical event: time, source, sink, migrants, new deme size, new growth rate, migration matrix index
+4 historical event
+1707 0 0 0 640374 0 0 nomig absoluteResize
+9494 0 0 0 275692 0 0 absoluteResize
+42956 0 0 0 393753 0 0 absoluteResize
+67421 0 0 0 60170 0 0 absoluteResize
+//Number of independent loci (chromosomes)
+1 0
+//Per chromosome: Number of contiguous linkage Block: a block is a set of contiguous loci
+1
+//per Block: data type, num loci, rec. rate and mut rate + optional parameters
+DNA 1000000 1.00e-8 1.08e-8 0.33
