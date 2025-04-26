@@ -1,0 +1,491 @@
+#################################################################################
+#####                                                                       #####
+#####           demographic modeling in dadi  (1d and Portik)               #####
+#####                                                                       #####
+#################################################################################
+#!/usr/bin/env python3
+##### ---------- ##### ---------- ##### ---------- ##### ---------- #####
+# Dadi 1d pipeline 
+##### ---------- ##### ---------- ##### ---------- ##### ---------- #####
+"""
+Script to test dadi's basic workflow for single population demographic inference
+(1d)
+"""
+import numpy as np
+import dadi
+import matplotlib.pyplot as plt
+import os
+output_dir = "1d_models_results"
+os.makedirs(output_dir, exist_ok=True)
+data_fs = dadi.Spectrum.from_file("acalahor_data_folded_full.fs")
+if not data_fs.folded:
+    data_fs = data_fs.fold()
+pts_l = [40, 50, 60] #grid points for extrapolation
+# optimization runs for each model
+n_runs = 20
+max_iter = 100
+
+# define the models to test
+models = ["snm", "two_epoch", "growth", "bottlegrowth", "three_epoch"]
+if "exponential_growth" in dir(dadi.Demographics1D):
+    models.append("exponential_growth")
+results = {}
+
+# Model 1: Standard neutral model (snm)
+func = dadi.Demographics1D.snm
+func_ex = dadi.Numerics.make_extrap_log_func(func)
+model = func_ex([], data_fs.sample_sizes, pts_l)
+ll_snm = dadi.Inference.ll_multinom(model, data_fs)
+theta_snm = dadi.Inference.optimal_sfs_scaling(model, data_fs)
+
+results["snm"] = {
+    "ll": ll_snm,
+    "aic": -2*ll_snm, 
+    "theta": theta_snm,
+    "params": {}
+}
+plt.figure()
+dadi.Plotting.plot_1d_comp_multinom(model, data_fs)
+plt.title(f"Standard neutral model\nLL={ll_snm:.2f}, AIC={-2*ll_snm:.2f}")
+plt.savefig(f"{output_dir}/snm_fit.png")
+plt.close()
+
+# Model 2: Two epoch model
+func = dadi.Demographics1D.two_epoch
+func_ex = dadi.Numerics.make_extrap_log_func(func)
+p0 = [1.0, 0.1]  # nu, T
+lower_bound = [0.01, 0.001]
+upper_bound = [100.0, 10.0]
+param_names = ["nu", "T"]
+best_params = []
+best_ll = -np.inf
+for i in range(n_runs):
+    p0_i = dadi.Misc.perturb_params(p0, fold=2, lower_bound=lower_bound, upper_bound=upper_bound)
+    popt = dadi.Inference.optimize_log(p0_i, data_fs, func_ex, pts_l,
+                                     lower_bound=lower_bound,
+                                     upper_bound=upper_bound,
+                                     maxiter=max_iter)
+    model = func_ex(popt, data_fs.sample_sizes, pts_l)
+    ll = dadi.Inference.ll_multinom(model, data_fs)
+    if ll > best_ll:
+        best_ll = ll
+        best_params = popt
+model = func_ex(best_params, data_fs.sample_sizes, pts_l)
+theta = dadi.Inference.optimal_sfs_scaling(model, data_fs)
+aic = 2*len(best_params) - 2*best_ll
+results["two_epoch"] = {
+    "ll": best_ll,
+    "aic": aic,
+    "theta": theta,
+    "params": dict(zip(param_names, best_params))
+}
+# plot the model fit
+plt.figure()
+dadi.Plotting.plot_1d_comp_multinom(model, data_fs)
+param_str = ", ".join([f"{name}={val:.4f}" for name, val in zip(param_names, best_params)])
+plt.title(f"Two epoch model\nLL={best_ll:.2f}, AIC={aic:.2f}\n{param_str}")
+plt.savefig(f"{output_dir}/two_epoch_fit.png")
+plt.close()
+
+# Model 3: Growth model
+func = dadi.Demographics1D.growth
+func_ex = dadi.Numerics.make_extrap_log_func(func)
+p0 = [1.0, 0.1]  # nu, T
+lower_bound = [0.01, 0.001]
+upper_bound = [100.0, 10.0]
+param_names = ["nu", "T"]
+best_params = []
+best_ll = -np.inf
+for i in range(n_runs):
+    p0_i = dadi.Misc.perturb_params(p0, fold=2, lower_bound=lower_bound, upper_bound=upper_bound)
+    popt = dadi.Inference.optimize_log(p0_i, data_fs, func_ex, pts_l,
+                                     lower_bound=lower_bound,
+                                     upper_bound=upper_bound,
+                                     maxiter=max_iter)
+    model = func_ex(popt, data_fs.sample_sizes, pts_l)
+    ll = dadi.Inference.ll_multinom(model, data_fs)
+    if ll > best_ll:
+        best_ll = ll
+        best_params = popt
+model = func_ex(best_params, data_fs.sample_sizes, pts_l)
+theta = dadi.Inference.optimal_sfs_scaling(model, data_fs)
+aic = 2*len(best_params) - 2*best_ll
+results["growth"] = {
+    "ll": best_ll,
+    "aic": aic,
+    "theta": theta,
+    "params": dict(zip(param_names, best_params))
+}
+# plot the model fit
+plt.figure()
+dadi.Plotting.plot_1d_comp_multinom(model, data_fs)
+param_str = ", ".join([f"{name}={val:.4f}" for name, val in zip(param_names, best_params)])
+plt.title(f"Growth model\nLL={best_ll:.2f}, AIC={aic:.2f}\n{param_str}")
+plt.savefig(f"{output_dir}/growth_fit.png")
+plt.close()
+
+# Model 4: Bottlegrowth model
+func = dadi.Demographics1D.bottlegrowth
+func_ex = dadi.Numerics.make_extrap_log_func(func)
+p0 = [0.1, 2.0, 0.05]  # nuB, nuF, T
+lower_bound = [0.01, 0.01, 0.001]
+upper_bound = [1.0, 100.0, 10.0]
+param_names = ["nuB", "nuF", "T"]
+best_params = []
+best_ll = -np.inf
+for i in range(n_runs):
+    p0_i = dadi.Misc.perturb_params(p0, fold=2, lower_bound=lower_bound, upper_bound=upper_bound)
+    popt = dadi.Inference.optimize_log(p0_i, data_fs, func_ex, pts_l,
+                                     lower_bound=lower_bound,
+                                     upper_bound=upper_bound,
+                                     maxiter=max_iter)
+    model = func_ex(popt, data_fs.sample_sizes, pts_l)
+    ll = dadi.Inference.ll_multinom(model, data_fs)
+    if ll > best_ll:
+        best_ll = ll
+        best_params = popt
+model = func_ex(best_params, data_fs.sample_sizes, pts_l)
+theta = dadi.Inference.optimal_sfs_scaling(model, data_fs)
+aic = 2*len(best_params) - 2*best_ll
+results["bottlegrowth"] = {
+    "ll": best_ll,
+    "aic": aic,
+    "theta": theta,
+    "params": dict(zip(param_names, best_params))
+}
+# plot the model fit
+plt.figure()
+dadi.Plotting.plot_1d_comp_multinom(model, data_fs)
+param_str = ", ".join([f"{name}={val:.4f}" for name, val in zip(param_names, best_params)])
+plt.title(f"Bottlegrowth model\nLL={best_ll:.2f}, AIC={aic:.2f}\n{param_str}")
+plt.savefig(f"{output_dir}/bottlegrowth_fit.png")
+plt.close()
+
+# Model 5: Three epoch model
+func = dadi.Demographics1D.three_epoch
+func_ex = dadi.Numerics.make_extrap_log_func(func)
+p0 = [0.5, 5.0, 0.1, 0.1]  # nuB, nuF, TB, TF
+lower_bound = [0.01, 0.01, 0.001, 0.001]
+upper_bound = [10.0, 100.0, 5.0, 5.0]
+param_names = ["nuB", "nuF", "TB", "TF"]
+best_params = []
+best_ll = -np.inf
+for i in range(n_runs):
+    p0_i = dadi.Misc.perturb_params(p0, fold=2, lower_bound=lower_bound, upper_bound=upper_bound)
+    popt = dadi.Inference.optimize_log(p0_i, data_fs, func_ex, pts_l,
+                                     lower_bound=lower_bound,
+                                     upper_bound=upper_bound,
+                                     maxiter=max_iter)
+    model = func_ex(popt, data_fs.sample_sizes, pts_l)
+    ll = dadi.Inference.ll_multinom(model, data_fs)
+    if ll > best_ll:
+        best_ll = ll
+        best_params = popt
+model = func_ex(best_params, data_fs.sample_sizes, pts_l)
+theta = dadi.Inference.optimal_sfs_scaling(model, data_fs)
+aic = 2*len(best_params) - 2*best_ll
+results["three_epoch"] = {
+    "ll": best_ll,
+    "aic": aic,
+    "theta": theta,
+    "params": dict(zip(param_names, best_params))
+}
+# plot the model fit
+plt.figure()
+dadi.Plotting.plot_1d_comp_multinom(model, data_fs)
+param_str = ", ".join([f"{name}={val:.4f}" for name, val in zip(param_names, best_params)])
+plt.title(f"Three epoch model\nLL={best_ll:.2f}, AIC={aic:.2f}\n{param_str}")
+plt.savefig(f"{output_dir}/three_epoch_fit.png")
+plt.close()
+
+# check and run exponential_growth model if available 
+# (this avoids crashes in previous versions of dadi)
+if "exponential_growth" in dir(dadi.Demographics1D):
+    func = dadi.Demographics1D.exponential_growth
+    func_ex = dadi.Numerics.make_extrap_log_func(func)
+    p0 = [0.1, 0.1, 0.1]  # nu0, nuF, T
+    lower_bound = [0.001, 0.001, 0.001]
+    upper_bound = [10.0, 100.0, 10.0]
+    param_names = ["nu0", "nuF", "T"]
+    best_params = []
+    best_ll = -np.inf
+    for i in range(n_runs):
+        p0_i = dadi.Misc.perturb_params(p0, fold=2, lower_bound=lower_bound, upper_bound=upper_bound)
+        popt = dadi.Inference.optimize_log(p0_i, data_fs, func_ex, pts_l,
+                                         lower_bound=lower_bound,
+                                         upper_bound=upper_bound,
+                                         maxiter=max_iter)
+        model = func_ex(popt, data_fs.sample_sizes, pts_l)
+        ll = dadi.Inference.ll_multinom(model, data_fs)
+        if ll > best_ll:
+            best_ll = ll
+            best_params = popt
+    model = func_ex(best_params, data_fs.sample_sizes, pts_l)
+    theta = dadi.Inference.optimal_sfs_scaling(model, data_fs)
+    aic = 2*len(best_params) - 2*best_ll
+    results["exponential_growth"] = {
+        "ll": best_ll,
+        "aic": aic,
+        "theta": theta,
+        "params": dict(zip(param_names, best_params))
+    }
+    # plot the model fit
+    plt.figure()
+    dadi.Plotting.plot_1d_comp_multinom(model, data_fs)
+    param_str = ", ".join([f"{name}={val:.4f}" for name, val in zip(param_names, best_params)])
+    plt.title(f"Exponential growth model\nLL={best_ll:.2f}, AIC={aic:.2f}\n{param_str}")
+    plt.savefig(f"{output_dir}/exponential_growth_fit.png")
+    plt.close()
+for model_name, model_results in results.items():
+    with open(f"{output_dir}/{model_name}_results.txt", 'w') as f:
+        f.write(f"Model: {model_name}\n")
+        f.write(f"Log-likelihood: {model_results['ll']:.4f}\n")
+        f.write(f"AIC: {model_results['aic']:.4f}\n")
+        f.write(f"Optimal theta: {model_results['theta']:.4f}\n")
+        f.write("Parameters:\n")
+        for param, value in model_results['params'].items():
+            f.write(f"{param}: {value:.4f}\n")
+
+### ---------- comparing 1d models 
+# Compare models by AIC
+sorted_results = sorted(results.items(), key=lambda x: x[1]['aic'])
+# Generate summary table
+with open(f"{output_dir}/model_comparison.txt", 'w') as f:
+    f.write("Model\tLog-likelihood\tAIC\tTheta\tParameters\n")
+    for model_name, model_results in sorted_results:
+        param_str = ", ".join([f"{k}={v:.4f}" for k, v in model_results['params'].items()])
+        f.write(f"{model_name}\t{model_results['ll']:.4f}\t{model_results['aic']:.4f}\t{model_results['theta']:.4f}\t{param_str}\n")
+# Plot model comparison
+plt.figure(figsize=(10, 6))
+models = [x[0] for x in sorted_results]
+aics = [x[1]['aic'] for x in sorted_results]
+plt.bar(models, aics)
+plt.xticks(rotation=45, ha="right")
+plt.ylabel("AIC")
+plt.title("Model Comparison by AIC")
+plt.tight_layout()
+plt.savefig(f"{output_dir}/model_comparison.png")
+print("Analysis complete. Results saved to:", output_dir)
+
+
+
+
+##### ---------- ##### ---------- ##### ---------- ##### ---------- #####
+# Dadi Potrik pipeline 
+##### ---------- ##### ---------- ##### ---------- ##### ---------- #####
+#!/usr/bin/env python3
+"""
+Script to run optimizations for the models in Portik's pipeline
+"""
+import dadi
+import numpy as np
+import matplotlib.pyplot as plt
+import os
+output_dir = 'resize_models_results'
+os.makedirs(output_dir, exist_ok=True)
+data_fs = "/home/acalahor/acalahor_data_folded_full.fs"
+fs = dadi.Spectrum.from_file(data_fs)
+if not fs.folded:
+    fs = fs.fold()
+pop_id = 'acalahor'
+pts_l = [40, 50, 60] #grid points for extrapolation
+
+# define the models to test
+# Model 0: No size change (constant population size)
+def no_change(params, ns, pts):
+    """
+    No size change model.
+    params = [nu]
+    ns = sample size
+    """
+    nu = params[0]
+    xx = dadi.Numerics.default_grid(pts)
+    phi = dadi.PhiManip.phi_1D(xx)
+    phi = dadi.Integration.one_pop(phi, xx, 5.0, nu)
+    fs = dadi.Spectrum.from_phi(phi, ns, [xx])
+    return fs
+    
+# Model 1: One size change
+def one_change(params, ns, pts):
+    """
+    One size change model.
+    params = [nu, T]
+    ns = sample size
+    """
+    nu, T = params
+    xx = dadi.Numerics.default_grid(pts)
+    phi = dadi.PhiManip.phi_1D(xx)
+    phi = dadi.Integration.one_pop(phi, xx, T, nu)
+    fs = dadi.Spectrum.from_phi(phi, ns, [xx])
+    return fs
+
+# Model 2: Two size changes
+def two_changes(params, ns, pts):
+    """
+    Two size changes model.
+    params = [nu1, nu2, T1, T2]
+    ns = sample size
+    """
+    nu1, nu2, T1, T2 = params
+    xx = dadi.Numerics.default_grid(pts)
+    phi = dadi.PhiManip.phi_1D(xx)
+    phi = dadi.Integration.one_pop(phi, xx, T1, nu1)
+    phi = dadi.Integration.one_pop(phi, xx, T2, nu2)
+    fs = dadi.Spectrum.from_phi(phi, ns, [xx])
+    return fs
+
+# Model 3: Three size changes
+def three_changes(params, ns, pts):
+    """
+    Three size changes model.
+    params = [nu1, nu2, nu3, T1, T2, T3]
+    ns = sample size
+    """
+    nu1, nu2, nu3, T1, T2, T3 = params
+    xx = dadi.Numerics.default_grid(pts)
+    phi = dadi.PhiManip.phi_1D(xx)
+    phi = dadi.Integration.one_pop(phi, xx, T1, nu1)
+    phi = dadi.Integration.one_pop(phi, xx, T2, nu2)
+    phi = dadi.Integration.one_pop(phi, xx, T3, nu3)
+    fs = dadi.Spectrum.from_phi(phi, ns, [xx])
+    return fs
+
+# Model 4: Four size changes
+def four_changes(params, ns, pts):
+    """
+    Four size changes model.
+    params = [nu1, nu2, nu3, nu4, T1, T2, T3, T4]
+    ns = sample size
+    """
+    nu1, nu2, nu3, nu4, T1, T2, T3, T4 = params
+    xx = dadi.Numerics.default_grid(pts)
+    phi = dadi.PhiManip.phi_1D(xx)
+    phi = dadi.Integration.one_pop(phi, xx, T1, nu1)
+    phi = dadi.Integration.one_pop(phi, xx, T2, nu2)
+    phi = dadi.Integration.one_pop(phi, xx, T3, nu3)
+    phi = dadi.Integration.one_pop(phi, xx, T4, nu4)
+    fs = dadi.Spectrum.from_phi(phi, ns, [xx])
+    return fs
+
+# model configurations
+models = [
+    {
+        'name': 'no_change',
+        'func': no_change,
+        'param_names': ['nu'],
+        'lower_bound': [0.01],
+        'upper_bound': [100],
+        'initial_values': [1.0]
+    },
+    {
+        'name': 'one_change',
+        'func': one_change,
+        'param_names': ['nu', 'T'],
+        'lower_bound': [0.01, 0.01],
+        'upper_bound': [100, 10],
+        'initial_values': [2.0, 0.5]
+    },
+    {
+        'name': 'two_changes',
+        'func': two_changes,
+        'param_names': ['nu1', 'nu2', 'T1', 'T2'],
+        'lower_bound': [0.01, 0.01, 0.01, 0.01],
+        'upper_bound': [100, 100, 10, 10],
+        'initial_values': [2.0, 0.5, 0.5, 0.1]
+    },
+    {
+        'name': 'three_changes',
+        'func': three_changes,
+        'param_names': ['nu1', 'nu2', 'nu3', 'T1', 'T2', 'T3'],
+        'lower_bound': [0.01, 0.01, 0.01, 0.01, 0.01, 0.01],
+        'upper_bound': [100, 100, 100, 10, 10, 10],
+        'initial_values': [2.0, 1.0, 0.5, 0.5, 0.2, 0.1]
+    },
+    {
+        'name': 'four_changes',
+        'func': four_changes,
+        'param_names': ['nu1', 'nu2', 'nu3', 'nu4', 'T1', 'T2', 'T3', 'T4'],
+        'lower_bound': [0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01],
+        'upper_bound': [100, 100, 100, 100, 10, 10, 10, 10],
+        'initial_values': [2.0, 1.5, 1.0, 0.5, 0.5, 0.3, 0.2, 0.1]
+    }
+]
+
+# optimization for each model (five)
+results = []
+for model in models:
+    print(f"\nOptimizing {model['name']} model...")
+    func_ex = dadi.Numerics.make_extrap_log_func(model['func'])
+    best_p = None
+    best_ll = -np.inf
+    for i in range(5):
+        print(f"  Optimization run {i+1}/5")
+        if i == 0:
+            p0 = model['initial_values']
+        else:
+            p0 = [v * np.random.uniform(0.8, 1.2) for v in model['initial_values']]
+            p0 = [max(min(p0[j], model['upper_bound'][j]), model['lower_bound'][j]) 
+                  for j in range(len(p0))]
+        popt = dadi.Inference.optimize_log(
+            p0, fs, func_ex, pts_l,
+            lower_bound=model['lower_bound'],
+            upper_bound=model['upper_bound'],
+            verbose=False, maxiter=100
+        )
+        model_fs = func_ex(popt, fs.sample_sizes, pts_l)
+        ll = dadi.Inference.ll_multinom(model_fs, fs)
+        print(f"    log-likelihood: {ll}")
+        if ll > best_ll:
+            best_ll = ll
+            best_p = popt
+    k = len(model['param_names'])
+    aic = 2 * k - 2 * best_ll
+    best_model = func_ex(best_p, fs.sample_sizes, pts_l)
+    results.append({
+        'name': model['name'],
+        'parameters': dict(zip(model['param_names'], best_p)),
+        'log_likelihood': best_ll,
+        'AIC': aic,
+        'model_fs': best_model
+    })
+    with open(f"{output_dir}/{model['name']}_results.txt", 'w') as f:
+        f.write(f"Model: {model['name']}\n")
+        f.write(f"Parameters: {dict(zip(model['param_names'], best_p))}\n")
+        f.write(f"Log-likelihood: {best_ll}\n")
+        f.write(f"AIC: {aic}\n")
+# model vs data plot 
+    fig = plt.figure(figsize=(8, 6))
+    dadi.Plotting.plot_1d_comp_multinom(best_model, fs)
+    plt.title(f"{model['name']} (AIC = {aic:.2f})")
+    plt.savefig(f"{output_dir}/{model['name']}_fit.png", dpi=300)
+    plt.close()
+
+# Compare models by AIC
+results.sort(key=lambda x: x['AIC'])
+best_model = results[0]
+print("\n\nModel Comparison by AIC:")
+for result in results:
+    print(f"{result['name']}: AIC = {result['AIC']:.2f}, Δ AIC = {result['AIC'] - best_model['AIC']:.2f}")
+print(f"\nBest model: {best_model['name']} (AIC = {best_model['AIC']:.2f})")
+print("Parameters:", best_model['parameters'])
+print("Log-likelihood:", best_model['log_likelihood'])
+
+# comparison plot of all models
+plt.figure(figsize=(10, 8))
+for i, result in enumerate(results):
+    plt.subplot(len(results), 1, i+1)
+    dadi.Plotting.plot_1d_comp_multinom(result['model_fs'], fs, residual=True)
+    plt.title(f"{result['name']} (AIC = {result['AIC']:.2f})")
+
+plt.tight_layout()
+plt.savefig(f"{output_dir}/all_models_comparison.png", dpi=300)
+plt.close()
+# summary table
+with open(f"{output_dir}/model_comparison.txt", 'w') as f:
+    f.write("Model Comparison by AIC:\n")
+    f.write("-------------------------\n")
+    for result in results:
+        f.write(f"{result['name']}: AIC = {result['AIC']:.2f}, Δ AIC = {result['AIC'] - best_model['AIC']:.2f}\n")
+    f.write(f"\nBest model: {best_model['name']} (AIC = {best_model['AIC']:.2f})\n")
+    f.write(f"Parameters: {best_model['parameters']}\n")
+    f.write(f"Log-likelihood: {best_model['log_likelihood']}\n")
