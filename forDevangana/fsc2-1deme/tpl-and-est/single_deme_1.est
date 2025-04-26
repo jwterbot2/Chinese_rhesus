@@ -1,0 +1,9 @@
+// Priors and rules file
+// *********************
+[PARAMETERS]
+//#isInt? #name #dist. #min #max
+//all N are in number of haploid individuals
+1 $NCUR  logunif      1e3  1e6   output bounded
+1 $N1    logunif      1e3  1e6   output bounded
+1 $T1    unif         500    50000   output
+[COMPLEX PARAMETERS]
