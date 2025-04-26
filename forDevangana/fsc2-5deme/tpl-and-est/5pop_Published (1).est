@@ -1,0 +1,41 @@
+// Priors and rules file
+// *********************
+
+[PARAMETERS]
+//#isInt? #name	#dist.#min	#max	
+//all N are in number of haploid individuals
+1	Ntc	logunif	1e3	1e6	output
+1	Nli	logunif	1e3	1e6	output
+1	Nbr	logunif	1e3	1e6	output
+1	Nla	logunif	1e3	1e6	output
+1	Nmu	logunif	1e3	1e6	output
+
+1	NA1	logunif	1e3	1e6	output
+1	NA2	logunif	1e3	1e6	output
+1	NA3	logunif	1e3	1e6	output
+1	NA4	logunif	1e3	1e6	output
+
+1 $PIVOT unif         500      50000    hide
+1 $RT1   unif         500      $PIVOT   hide paramInRange
+1 $RT2   unif         500      $PIVOT   hide paramInRange
+1 $RT3   unif         $PIVOT   50000    hide paramInRange
+1 $RT4   unif         $PIVOT   50000    hide paramInRange
+
+0	Mmu2la	logunif  1e-8 1e-2       output
+0	Mla2mu	logunif  1e-8 1e-2       output
+0	Mmu2li  logunif  1e-8 1e-2       output
+0	Mli2mu  logunif  1e-8 1e-2       output
+0	Mla2li  logunif  1e-8 1e-2       output
+0	Mli2la  logunif  1e-8 1e-2       output
+0	Mla2tc  logunif  1e-8 1e-2       output
+0	Mtc2la  logunif  1e-8 1e-2       output
+0	Mbr2li  logunif  1e-8 1e-2       output
+0	Mli2br  logunif  1e-8 1e-2       output
+0	Mtc2li  logunif  1e-8 1e-2       output
+0	Mli2tc  logunif  1e-8 1e-2       output
+
+[COMPLEX PARAMETERS]
+1 t1      =    $RT1 %min% $RT2  output
+1 t2      =    $RT1 %max% $RT2  output
+1 t3      =    $RT3 %min% $RT4  output
+1 t4      =    $RT3 %max% $RT4  output
