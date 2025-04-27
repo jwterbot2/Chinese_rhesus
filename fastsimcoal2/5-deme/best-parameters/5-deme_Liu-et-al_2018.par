@@ -1,0 +1,44 @@
+//Number of population samples (demes)
+5
+//Population effective sizes (number of genomes)
+1223 sfspool 0
+7460 sfspool 0
+8339 sfspool 0
+32377 sfspool 0
+20179 sfspool 0
+//Sample sizes - samples age - inbreeding coefficient
+10
+56
+10
+62
+20
+//Growth rates
+0
+0
+0
+0
+0
+//Number of migration matrices
+1
+//Migration matrix 0
+0 1.8e-6 0 2.43e-6 0
+4.85e-4 0 4.09e-5 8.36e-6 6.91e-6
+0 1.96e-5 0 0 0
+6.88e-6 1.05e-5 0 0 5.33e-6
+0 2.34e-5 0 3.63e-5 0
+//historical event: time, source, sink, migrants, new deme size, new growth rate, migration matrix index
+8 historical event
+4660  0 1 1   9012 0 0 nomig absoluteResize //tc to li
+4660  0 0 0      0 0 0 //remove tc
+5606  1 2 1  41536 0 0 absoluteResize //tc/li to br
+5606  1 0 0      0 0 0 //remove tc+li
+9468  2 3 1 132420 0 0 absoluteResize //tc/li/br to la
+9468  2 0 0      0 0 0 //remove (tc+li+)br
+11432 3 4 1 796292 0 0  absoluteResize //tc/li/br/la to mu
+11432 3 0 0      0 0 0 //remove (tc+li+br+)la
+//Number of independent loci (chromosomes)
+1 0
+//Per chromosome: Number of contiguous linkage Block: a block is a set of contiguous loci
+1
+//per Block: data type, num loci, rec. rate and mut rate + optional parameters
+DNA 1000000 1e-8 1.08e-8 0.33 OUTEXP

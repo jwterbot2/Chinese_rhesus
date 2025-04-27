@@ -1,0 +1,48 @@
+description: Published Chinese Rhesus Demography
+time_units: generations
+
+demes:
+- name: Ancestral
+  description: Root population
+  epochs:
+  - {end_time: 11432, start_size: 796292}
+- name: mulatta
+  description: mulatta
+  ancestors: [Ancestral]
+  epochs:
+  - {start_size: 20179}
+- name: Ancestral_2
+  description: Post-mulatta split
+  ancestors: [Ancestral]
+  epochs:
+  - {end_time: 9468, start_size: 132420}
+- name: lasiotis
+  description: lasiotis
+  ancestors: [Ancestral_2]
+  epochs:
+  - {start_size: 32377}
+- name: Ancestral_3
+  description: Post-lasiotis split
+  ancestors: [Ancestral_2]
+  epochs:
+  - {end_time: 5606, start_size: 41536}
+- name: brevicaudus
+  description: North population
+  ancestors: [Ancestral_3]
+  epochs:
+  - {start_size: 8339}
+- name: Ancestral_4
+  description: Post-brevicaudus split
+  ancestors: [Ancestral_3]
+  epochs:
+  - {end_time: 4660, start_size: 9012}
+- name: littoralis
+  description: littoralis
+  ancestors: [Ancestral_4]
+  epochs:
+  - {start_size: 7460}
+- name: tcheliensis
+  description: tcheliensis
+  ancestors: [Ancestral_4]
+  epochs:
+  - { start_size: 1223}

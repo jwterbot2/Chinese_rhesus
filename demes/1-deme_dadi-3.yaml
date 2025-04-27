@@ -1,0 +1,11 @@
+description: Chinese Rhesus Samples as Single Deme, 2 Resize Events
+time_units: generations
+
+demes:
+- name: Rhesus_Single
+  description: Single Population
+  epochs:
+  - {end_time: 57981, start_size: 62104}
+  - {end_time: 4652, start_size: 300631}
+  - {end_time: 2974, start_size: 3304880}
+  - {start_size: 170115}

@@ -1,0 +1,28 @@
+description: Reparameterized Chinese Rhesus Demography
+time_units: generations
+
+demes:
+- name: Ancestral
+  description: Root population
+  epochs:
+  - {end_time: 17039, start_size: 112776}
+- name: brevicaudus
+  description: brevicaudus
+  ancestors: [Ancestral]
+  epochs:
+  - {start_size: 75546}
+- name: Ancestral_2
+  description: Post-brevicaudus split
+  ancestors: [Ancestral]
+  epochs:
+  - {end_time: 1259, start_size: 768035}
+- name: mul_lit_las
+  description: mul_lit_las
+  ancestors: [Ancestral_2]
+  epochs:
+  - {start_size: 111901}
+- name: tcheliensis
+  description: tcheliensis
+  ancestors: [Ancestral_2]
+  epochs:
+  - { start_size: 7904}
