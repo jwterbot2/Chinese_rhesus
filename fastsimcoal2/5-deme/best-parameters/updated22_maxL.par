@@ -1,0 +1,69 @@
+//Number of population samples (demes)
+5 
+//Population effective sizes (number of genes)
+21929
+85325
+18695
+66951
+119231
+//Sample sizes (haploid size of the sample, sampling time in generations back)
+10
+56
+10
+62
+20
+//Growth rates (negative growth =population expansion, because its measured back in time)
+0
+0
+0
+0
+0
+//Number of migration matrices : If 0 : No migration between demes
+5
+//Migration matrix 0
+0 	1.946962208697029e-07 	0 	2.089405345990557e-05 	0
+4.205290892812438e-05 	0 	2.711678855131874e-06	6.428579602599971e-05 	3.739385482959537e-05
+0	1.084972250611993e-04 	0 	0 	0
+4.314149373061812e-05 	9.950633897830854e-05  0 	0 	8.509654842634744e-06
+0 	5.192711285438212e-05  0 	1.970552780633312e-04 	0
+//Migration matrix 1
+0 0 0 0 0
+0 0 0 0 0
+0 0 0 0 0
+0 0 0 0 0
+0 0 0 0 0
+//Migration matrix 2
+0 0 0 0 0
+0 0 0 0 0
+0 0 0 0 0
+0 0 0 0 0
+0 0 0 0 0
+//Migration matrix 3
+0 0 0 0 0
+0 0 0 0 0
+0 0 0 0 0
+0 0 0 0 0
+0 0 0 0 0
+//Migration matrix 4
+0 0 0 0 0
+0 0 0 0 0
+0 0 0 0 0
+0 0 0 0 0
+0 0 0 0 0
+//Historical event: time, source, sink, migrants, new deme size, new growth rate, new migration matrix
+8 historical events
+6113 0 1 1 74406 0 1 absoluteResize
+6113 0 0 0 0 0 1 //kill tc
+6153 1 2 1 39196 0 2 absoluteResize
+6153 1 1 0 0 0 2 //kill li
+8362 2 3 1 824641 0 3 absoluteResize
+8362 2 2 0 0 0 3 //kill br
+49432 3 4 1 77361 0 4 absoluteResize
+49432 3 3 0 0 0 4 //kill la
+//Number of independent loci [chromosome] 
+1 0
+//Per chromosome: Number of contiguous linkage Block: a block is a set of contiguous loci
+1
+//per Block:data type, number of loci, per generation recombination and mutation rates and optional parameters
+DNA 1000000 1.00e-8 1.08e-8 0.33
+
